@@ -9,18 +9,51 @@ export default function ToDoList() {
     setData(data.filter((x) => x.id !== id));
   };
 
+  const handleEnd = (result) => {
+    const items = Array.from(data);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setData(items);
+
+    console.log(result);
+    if (!result.destination) return; //exit the function if null.
+  };
+
   return (
     <div className="App">
-      <ul>
-        {data.map((item, index) => (
-          <div key={item.id}>
-            <li>
-              {index}. {item.name}{" "}
-            </li>
-            <button onClick={() => deleteItem(item.id)}> Delete</button>
-          </div>
-        ))}
-      </ul>
+      <DragDropContext onDragEnd={handleEnd}>
+        <Droppable droppableId="to-dos">
+          {(provided) => (
+            <ul {...provided.droppableProps} ref={provided.innerRef}>
+              {data.map((item, index) => (
+                <Draggable
+                  key={item.id}
+                  draggableId={item.id.toString()}
+                  index={index}
+                >
+                  {(provided, snapshot) => (
+                    <li
+                      {...provided.draggableProps}
+                      ref={provided.innerRef}
+                      {...provided.dragHandleProps}
+                      key={item.id}
+                      className={
+                        snapshot.isDragging ? "selected" : "not-selected"
+                      }
+                    >
+                      {index + 1}.{item.name}
+                      <button onClick={() => deleteItem(item.id)}>
+                        Delete
+                      </button>
+                    </li>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </ul>
+          )}
+        </Droppable>
+      </DragDropContext>
     </div>
   );
 }
